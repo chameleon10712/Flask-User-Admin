@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+{% if session['logged_in'] %}
+	<p>You need to logout first</p>
+	<a href="/logout">Logout</a>
+{% else %}
+	
+
+	<div class="login">
+		<div class="login-screen">
+			<div class="app-title">
+				<h2>Register</h2>
+			</div>
+
+			<form action="/register/" method="POST">
+			  <input type="username" name="username" placeholder="Username">
+			  <input type="password" name="password" placeholder="Password">
+			  <input  class="btn btn-primary btn-large btn-block"  type="submit" value="register">
+			</form>
+		</div>
+	</div>
+
+{% endif %}
+{% endblock %}
