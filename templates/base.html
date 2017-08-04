@@ -1,0 +1,20 @@
+<html>
+  <head>
+		<title>Flask Login Example</title>
+		<link rel="stylesheet" href="/static/style.css">
+
+  </head>
+  <body>
+    <a href="/" class="link-btn">Home</a>
+    <br><br><br><br>
+
+    <a href="/user_list" class="link-btn">User Admin</a>
+
+    <br><br><br><br>
+
+    <a href="/course_admin" class="link-btn">Course Admin</a>
+
+    <br><br><br><br>
+    {% block content %}{% endblock %}
+  </body>
+</html>

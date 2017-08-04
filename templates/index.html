@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="user-div">
+	{% if session['logged_in'] %}
+	   
+		{% if data %}
+			<h3>{{data}}</h3>
+		{% else %}
+
+			<a href="/logout" class="link-btn">Logout</a> <br> <br>
+			
+			{% if username %}
+				<h1>hi {{ username }}</h1>
+			{% else %}
+				<h1>there is no username </h1>
+			{% endif %}
+			
+		{% endif %}
+
+	{% else %}
+		<p>Not login!</p>
+		<a href="/login" class="link-btn">Login</a> 
+		<a href="/register" class="link-btn">Register</a>
+
+	{% endif %}
+</div>
+{% endblock %}
