@@ -8,7 +8,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 db = SQLAlchemy(app)
 
-
 class User(db.Model):
 	""" Create user table"""
 
@@ -43,6 +42,15 @@ class UserRole(db.Model):
         self.u_id = u_id
         self.role_id = role_id
 
+
+class Course(db.Model):
+	
+	__tablename__ = 'Course'
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(255))	
+
+	def __init__(self, name):
+		self.name = name
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -151,8 +159,34 @@ def user_info():
 
 @app.route('/course_admin')
 def course_admin():
+
+	course_list = db.session.query(Course.id, Course.name).all()	
+	course_list = sorted(course_list, key=lambda course: course[0])
+	print(course_list)
+
+	return render_template('course_admin.html', course_list  = course_list )
+#	return render_template('course_admin.html')
+
+
+
+
+@app.route('/add_course', methods=['POST'])
+def add_course():
+
+	name = request.form['course_name']
+	#check if course name exist
+	'''
+	data = Course.query.filter_by(name=name).first()
+	if data is not None:
+		return 'course name exist'
 	
-	return render_template('course_admin.html')
+	new_course = Course( name = name)
+	db.session.add(new_course)
+	db.session.commit()
+	'''
+	return redirect(url_for('course_admin'))
+
+
 
 
 
