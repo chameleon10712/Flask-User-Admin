@@ -60,9 +60,78 @@
 
         <h1>Course Info</h1>
 
-	</div>
+        <div class="row" style="margin-bottom:30px;">
+                <div class="col-md-8 col-lg-6"></div>
+                <div class="col-md-2 col-lg-4">
+                    <input type="course_name" id="input_course_name" placeholder="Course Name">
+                </div>
+                <div class="col-md-2 col-lg-2">
+                    <button type="button" class="add_course btn btn-primary">Add Course</button>
+                </div>
+                    
+
+        </div><!--end for row-->
+
+        <div class="row" style="margin-bottom:80px;">
+            <div class="col-md-4"></div>
+            <table class="table col-md-4">
+                <thead>
+                    <tr>
+                        <th scope="row">course id</th>
+                        <th>course name</th>
+                        <th></th>
+                    <tr>
+                </thead>
+                <tbody>
+                    {% for course in course_list %}
+                    <tr class="course_list_record">
+                        <td class="c_id">{{ course.id }}</td>
+                        <td>{{ course.name }}</td>
+                        <td><button type="button" class="delete btn btn-info">x</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="col-md-4"></div>
+        </div><!--end for row-->
 
 
+
+	</div><!--end for container-->
+
+
+	<script>
+		$('.add_course').on('click', function(){
+			var course_name = document.getElementById("input_course_name").value;
+			console.log('input course_name:  ',course_name);
+			if(course_name){
+				// course name is not empty
+				$.ajax({
+					  url: '/add_course',
+					  type:'POST',
+					  data: {course_name:course_name},
+				});
+
+			}else{
+				//course name is emtpy
+				console.log('course name is empty');
+
+			}
+
+		 });
+		
+
+
+	
+	</script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+

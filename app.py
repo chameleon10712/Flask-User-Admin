@@ -175,7 +175,7 @@ def add_course():
 
 	name = request.form['course_name']
 	#check if course name exist
-	'''
+	
 	data = Course.query.filter_by(name=name).first()
 	if data is not None:
 		return 'course name exist'
@@ -183,7 +183,7 @@ def add_course():
 	new_course = Course( name = name)
 	db.session.add(new_course)
 	db.session.commit()
-	'''
+	
 	return redirect(url_for('course_admin'))
 
 
