@@ -2,7 +2,7 @@
 
 <head>
 
-	<title>Course List</title>
+	<title>Role Admin</title>
     <meta charset="utf-8">
 
 
@@ -38,10 +38,10 @@
                         <a href="/user_list">User Admin</a>
                     </li>
                     <li>
-                        <a href="#">Course Admin</a>
+                        <a href="/course_admin">Course Admin</a>
                     </li>
                     <li>
-                        <a href="/role_admin">Role Admin</a>
+                        <a href="#">Role Admin</a>
                     </li>
                     <li>
                         <a href="#">Contact</a>
@@ -58,15 +58,15 @@
 	
     <div class="container"  style="margin-top:80px;">
 
-        <h1>Course List</h1>
+        <h1>Role List</h1>
 
         <div class="row" style="margin-bottom:30px;">
                 <div class="col-md-8 col-lg-6"></div>
                 <div class="col-md-2 col-lg-4">
-                    <input type="course_name" id="input_course_name" placeholder="Course Name">
+                    <input type="role_name" id="input_role_name" placeholder="Role Name">
                 </div>
                 <div class="col-md-2 col-lg-2">
-                    <button type="button" class="add_course btn btn-primary">Add Course</button>
+                    <button type="button" class="add_role btn btn-primary">Add Role</button>
                 </div>
                     
 
@@ -77,25 +77,20 @@
             <table class="table col-md-4">
                 <thead>
                     <tr>
-                        <th scope="row">course id</th>
-                        <th>course name</th>
+                        <th scope="row">role id</th>
+                        <th>role name</th>
                         <th></th>
                     <tr>
                 </thead>
-                <tbody class="course_list">
-                    {% for course in course_list %}
-                    <tr class="course_list_record">
-                        <td class="c_id">{{ course.id }}</td>
-                        <td>{{ course.name }}</td>
+                <tbody class="role_list">
+                    {% for role in role_list %}
+                    <tr class="role_list_record">
+                        <td class="r_id">{{ role.id }}</td>
+                        <td>{{ role.name }}</td>
                         <td><button type="button" class="delete btn btn-info">x</button></td>
                     </tr>
                     {% endfor %}
 
-					<tr class="new_course">
-						<td class="c_id"></td>
-						<td class="c_name"></td>
-						<td class="delete_btn"></td>
-					</tr>
 
                 </tbody>
             </table>
@@ -108,20 +103,20 @@
 
 
 	<script>
-		$('.add_course').on('click', function(){
-			var course_name = document.getElementById("input_course_name").value;
-			console.log('input course_name:  ',course_name);
-			if(course_name){
-				// course name is not empty
+		$('.add_role').on('click', function(){
+			var role_name = document.getElementById("input_role_name").value;
+			console.log('input role_name:  ',role_name);
+			if(role_name){
+				// role name is not empty
 				$.ajax({
-						url: '/add_course',
+						url: '/add_role',
 						type:'POST',
-						data: {course_name:course_name},
+						data: {role_name:role_name},
 						success:function(response){
 							console.log('response: ',response);
 							var  result = jQuery.parseJSON(response);
-							console.log(result.c_id);
-							window.location = '/course_admin';
+							console.log(result.r_id);
+							window.location = '/role_admin';
 
 						},
 						error: function(error){
@@ -130,34 +125,34 @@
 				});
 				
 			}else{
-				//course name is emtpy
-				console.log('course name is empty');
+				//role name is emtpy
+				console.log('role name is empty');
 
 			}
 
 		 });
 		
         $('.delete').on('click', function(){
-                var c_id = $(this).parent().parent().children('.c_id').html();
-                console.log('c_id  ', c_id);
+                var r_id = $(this).parent().parent().children('.r_id').html();
+                console.log('r_id  ', r_id);
                 $.ajax({
-                        url: '/delete_course',
+                        url: '/delete_role',
                         type:'POST',
-                        data: {c_id:c_id},
+                        data: {r_id:r_id},
                 });
                 $(this).parent().parent().remove();
 
         });
 
-        $('.course_list_record').on('click', function(){
-            var c_id = $(this).children('.c_id').html();
-            console.log('c_id', c_id);
+        $('.role_list_record').on('click', function(){
+            var r_id = $(this).children('.r_id').html();
+            console.log('r_id', r_id);
             $.ajax({
-                    url: '/get_course_info',
+                    url: '/get_role_info',
                     type:'POST',
-                    data: {c_id:c_id},
+                    data: {r_id:r_id},
                     success: function(response){
-                        window.location = '/course_info';
+                        window.location = '/role_info';
                     },
                     error: function(error){
                         console.log('error ', error);   

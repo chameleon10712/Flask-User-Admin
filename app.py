@@ -1,8 +1,10 @@
 """Flask Login Example"""
 import os
-from flask import Flask, url_for, render_template, request, redirect, session
+import json
+from flask import Flask, url_for, render_template, request, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
@@ -24,10 +26,10 @@ class Role(db.Model):
 
     __tablename__ = 'Role'
     id = db.Column(db.Integer, primary_key=True)
-    role = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
 
-    def __init__(self, role):
-        self.role = role
+    def __init__(self, name):
+        self.name = name
 
 
 class UserRole(db.Model):
@@ -183,10 +185,77 @@ def add_course():
 	new_course = Course( name = name)
 	db.session.add(new_course)
 	db.session.commit()
+	print('new course id: {}'.format(new_course.id))
+	print('json.dumps: {}'.format( json.dumps({'c_id': new_course.id}) ))
+
+	return json.dumps( {'c_id': new_course.id} )
+
+
+@app.route('/delete_course', methods=['POST'])
+def delete_course():
+
+	c_id = int(request.form['c_id'])	
+	instance = Course.query.filter_by(id = c_id).first()
+	print('delete course: {}'.format(instance.name) )
+
+	db.session.delete(instance)
+	db.session.commit()
+
+	return 'ok'
+
+
+@app.route('/get_course_info', methods=['GET', 'POST'])
+def get_course_info():
+
+		
+	return 'ok'
+
+
+@app.route('/course_info')
+def course_info():
+
+	return render_template('course_info.html')
+
+
+@app.route('/role_admin')
+def role_admin():
+
+	role_list = db.session.query(Role.id, Role.name).all()	
+	role_list = sorted(role_list, key=lambda role: role[0])
+	print(role_list)
+
+	return render_template('role_admin.html', role_list  = role_list )
+
+
+@app.route('/add_role', methods=['POST'])
+def add_role():
+
+	name = request.form['role_name']
+	#check if role name exist
 	
-	return redirect(url_for('course_admin'))
+	data = Role.query.filter_by(name=name).first()
+	if data is not None:
+		return 'role name exist'
+	
+	new_role = Role( name = name)
+	db.session.add(new_role)
+	db.session.commit()
+	print('new role id: {}'.format(new_role.id))
+	print('json.dumps: {}'.format( json.dumps({'r_id': new_role.id}) ))
 
+	return json.dumps( {'r_id': new_role.id} )
 
+@app.route('/delete_role', methods=['POST'])
+def delete_role():
+
+	r_id = int(request.form['r_id'])	
+	instance = Role.query.filter_by(id = r_id).first()
+	print('delete role: {}'.format(instance.name) )
+
+	db.session.delete(instance)
+	db.session.commit()
+
+	return 'ok'
 
 
 

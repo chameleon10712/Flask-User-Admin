@@ -41,7 +41,7 @@
                         <a href="/course_admin">Course Admin</a>
                     </li>
                     <li>
-                        <a href="#">Sample Post</a>
+                        <a href="/role_admin">Role Admin</a>
                     </li>
                     <li>
                         <a href="#">Contact</a>
@@ -59,11 +59,11 @@
     <div class="container"  style="margin-top:80px;">
 
         <div class="row" style="margin-bottom:30px;">
-                <div class="col-md-8"></div>
-                <div class="col-md-2">
+                <div class="col-md-8 col-lg-6"></div>
+                <div class="col-md-2 col-lg-4">
                     <input type="username" id="input_username" placeholder="Username">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 col-lg-2">
                     <button type="button" class="add_user btn btn-primary">Add User</button>
                 </div>
                 
@@ -122,6 +122,13 @@
                     url: '/add_user',
                     type:'POST',
                     data: {username:username},
+					success: function(response){
+						console.log('response ',response);
+						window.location = '/user_list';
+					},
+					error: function(error){
+						console.log('error ', error);
+					}
             });
 
 
@@ -133,9 +140,14 @@
                     url: '/get_user_info',
                     type:'POST',
                     data: {u_id:u_id},
+					success: function(response){
+            			window.location = '/user_info';
+					},
+					error: function(error){
+						console.log('error ', error);	
+					}
             });
             
-            window.location = '/user_info';
             
 
 
