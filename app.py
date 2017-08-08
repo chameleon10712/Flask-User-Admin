@@ -38,11 +38,11 @@ class UserRole(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False)
 
-    role_id = db.Column(db.Integer, db.ForeignKey('Role.id'), nullable=False)
+    r_id = db.Column(db.Integer, db.ForeignKey('Role.id'), nullable=False)
 
-    def __init__(self, u_id, role_id):
+    def __init__(self, u_id, r_id):
         self.u_id = u_id
-        self.role_id = role_id
+        self.r_id = r_id
 
 
 class Course(db.Model):
@@ -53,6 +53,18 @@ class Course(db.Model):
 
 	def __init__(self, name):
 		self.name = name
+
+
+
+def get_role_list():
+
+	role_list = db.session.query(Role.id, Role.name).all()	
+	role_list = sorted(role_list, key=lambda role: role[0])
+	print(role_list)
+	print(type(role_list))
+	return role_list
+
+
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -84,20 +96,28 @@ def login():
 		name = request.form['username']
 		passwd = request.form['password']
 		data = User.query.filter_by(username=name).first()
+		if data is None:
+			return 'User does not exist'
+
 		true_user = check_password_hash(data.password, passwd)
 		if true_user:
 			session['logged_in'] = name
 			return redirect(url_for('hello', username=name))
 		else:
-			return 'User not exists'
+			return 'wrong password'
 
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
 	"""Register Form"""
 	if request.method == 'POST':
+		name = request.form['username']
+		data = User.query.filter_by(username=name).first()
+		if data is not None:
+			return 'User exists!'
+
 		usr_passwd = generate_password_hash(request.form['password'])
-		new_user = User( username = request.form['username'], password = usr_passwd)
+		new_user = User( username = name, password = usr_passwd)
 		db.session.add(new_user)
 		db.session.commit()
 		return render_template('login.html')
@@ -115,7 +135,11 @@ def logout():
 def user_list():
 	people = db.session.query(User.id, User.username).all()	
 	people = sorted(people, key=lambda person: person[0])
-	return render_template('table.html', people = people)
+	
+	user_role = 'None'
+	role_list = get_role_list()
+
+	return render_template('table.html', people = people, user_role = user_role, role_list = role_list )
 
 
 @app.route('/delete_user', methods=['POST'])
@@ -217,14 +241,33 @@ def course_info():
 	return render_template('course_info.html')
 
 
+
+@app.route('/set_role', methods=['POST'])
+def set_role():
+	u_id = request.form['u_id'];
+	r_name = request.form['r_name'];	
+	'''
+	new_course = Course( name = name)
+	db.session.add(new_course)
+	db.session.commit()
+	'''
+	data = Role.query.filter_by(name = r_name).first()
+	print('r_id  {}'.format(data.id))
+	
+	
+	instance = UserRole( u_id = u_id, r_id = data.id )
+	
+
+	return 'ok'
+
+
 @app.route('/role_admin')
 def role_admin():
 
-	role_list = db.session.query(Role.id, Role.name).all()	
-	role_list = sorted(role_list, key=lambda role: role[0])
-	print(role_list)
-
+	role_list = get_role_list()
 	return render_template('role_admin.html', role_list  = role_list )
+
+
 
 
 @app.route('/add_role', methods=['POST'])
