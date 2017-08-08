@@ -36,8 +36,7 @@ class UserRole(db.Model):
 
     __tablename__ = 'UserRole'
     id = db.Column(db.Integer, primary_key=True)
-    u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False)
-
+    u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False, unique=True)
     r_id = db.Column(db.Integer, db.ForeignKey('Role.id'), nullable=False)
 
     def __init__(self, u_id, r_id):
@@ -133,13 +132,30 @@ def logout():
 
 @app.route('/user_list')
 def user_list():
+
+	if not session.get('logged_in'):
+		return 'You need to login first'
+
+
 	people = db.session.query(User.id, User.username).all()	
 	people = sorted(people, key=lambda person: person[0])
+	print('people  {}'.format(people))
+
+	role = db.session.query(Role.id, Role.name).all()	
+	print('role', role)
+
+	user_role = db.session.query(UserRole.u_id, UserRole.r_id).all()	
+	print('user_role', user_role)
+
+	people = db.session.query(User.id, User.username) \
+		.outerjoin(UserRole, User.id == UserRole.u_id) \
+		.outerjoin(Role, UserRole.r_id == Role.id) \
+		.with_entities(User.id, User.username, Role.name).all()
+	print('people {}'.format(people))
 	
-	user_role = 'None'
 	role_list = get_role_list()
 
-	return render_template('table.html', people = people, user_role = user_role, role_list = role_list )
+	return render_template('table.html', people = people, role_list = role_list )
 
 
 @app.route('/delete_user', methods=['POST'])
@@ -185,6 +201,9 @@ def user_info():
 
 @app.route('/course_admin')
 def course_admin():
+
+	if not session.get('logged_in'):
+		return 'You need to login first'
 
 	course_list = db.session.query(Course.id, Course.name).all()	
 	course_list = sorted(course_list, key=lambda course: course[0])
@@ -247,7 +266,7 @@ def set_role():
 	u_id = request.form['u_id'];
 	r_name = request.form['r_name'];	
 	'''
-	new_course = Course( name = name)
+	new_course = Course(name = name)
 	db.session.add(new_course)
 	db.session.commit()
 	'''
@@ -256,13 +275,17 @@ def set_role():
 	
 	
 	instance = UserRole( u_id = u_id, r_id = data.id )
-	
+	db.session.add(instance)
+	db.session.commit()
 
 	return 'ok'
 
 
 @app.route('/role_admin')
 def role_admin():
+
+	if not session.get('logged_in'):
+		return 'You need to login first'
 
 	role_list = get_role_list()
 	return render_template('role_admin.html', role_list  = role_list )
