@@ -83,7 +83,7 @@
                     <tr>
                         <th scope="row">user id</th>
                         <th>username</th>
-						<th>role</th>
+						<th>permission</th>
                         <th>
 							<button class="edit btn btn-success">Edit</button>
 						</th>
@@ -98,17 +98,24 @@
 						<td class="col-lg-2">
 							<div class="dropdown hidden_flag">
 							  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-								{{ person.name }}
+								{% if person.is_superuser %}
+									Administrator
+								{% else %}
+									User
+								{% endif %}
 								<span class="caret"></span>
 							  </button>
 							  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-								
+								<!--	
 								{% for role in role_list %}
 									<li><a href="#" class="select_role">{{ role.name }}</a></li>
 								{% endfor %}
-								
+
 								<li role="separator" class="divider"></li>
 								<li><a href="#" class="role_none">None</a></li>
+								-->
+								<li><a href="#" class="select_permission">User</li>
+								<li><a href="#" class="select_permission">Administrator</li>
 
 								
 							  </ul>
@@ -146,8 +153,6 @@
 		
 		$('.edit').on('click', function(){
 			console.log('click edit');
-			//$('.dropdown').css("display", "inline");	
-			//$('.delete').css("display","inline");
 			$('.user_list_record').find('.dropdown').removeClass('hidden_flag');
 			$('.user_list_record').find('.delete').removeClass('hidden_flag');
 
@@ -164,7 +169,7 @@
                     data: {username:username},
 					success: function(response){
 						console.log('response ',response);
-						window.location = '/user_list';
+						window.location = '/user_admin';
 					},
 					error: function(error){
 						console.log('error ', error);
@@ -174,17 +179,19 @@
 
         });
 
-		$('.select_role').on('click', function(){
-				var r_name = $(this).html();
+		$('.select_permission').on('click', function(){
+				var permission = $(this).html();
 				var u_id = $(this).parents('.user_list_record').children('.u_id').html();
-				console.log('r_name  ', r_name);
+				console.log('permission  ', permission );
 				console.log('u_id  ', u_id);
+
 				$.ajax({
-						url: '/set_role',
+						url: '/set_permission',
 						type: 'POST',
-						data: {u_id:u_id, r_name:r_name},
+						data: {u_id:u_id, permission:permission},
 						success: function(response){
 							console.log('response ', response);
+							window.location='/user_admin';
 
 						},
 						error: function(error){

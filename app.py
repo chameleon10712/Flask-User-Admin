@@ -17,31 +17,38 @@ class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(80), unique=True)
 	password = db.Column(db.String(80))
+	is_superuser = db.Column(db.Boolean, default=False)
 
 	def __init__(self, username, password):
 		self.username = username
 		self.password = password
 
+	def set_superuser(self, is_superuser):
+		self.is_superuser = is_superuser
+
+
 class Role(db.Model):
 
-    __tablename__ = 'Role'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
+	__tablename__ = 'Role'
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(255), nullable=False)
 
-    def __init__(self, name):
-        self.name = name
+	def __init__(self, name):
+		self.name = name
 
 
-class UserRole(db.Model):
+class UserCourseRole(db.Model):
 
-    __tablename__ = 'UserRole'
-    id = db.Column(db.Integer, primary_key=True)
-    u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False, unique=True)
-    r_id = db.Column(db.Integer, db.ForeignKey('Role.id'), nullable=False)
+	__tablename__ = 'UserCourseRole'
+	id = db.Column(db.Integer, primary_key=True)
+	u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False, unique=True)
+	c_id = db.Column(db.Integer, db.ForeignKey('Course.id'), nullable=True)
+	r_id = db.Column(db.Integer, db.ForeignKey('Role.id'), nullable=False)
 
-    def __init__(self, u_id, r_id):
-        self.u_id = u_id
-        self.r_id = r_id
+	def __init__(self, u_id, c_id, r_id):
+		self.u_id = u_id
+		self.c_id = c_id
+		self.r_id = r_id
 
 
 class Course(db.Model):
@@ -130,8 +137,8 @@ def logout():
 	return redirect(url_for('home'))
 
 
-@app.route('/user_list')
-def user_list():
+@app.route('/user_admin')
+def user_admin():
 
 	if not session.get('logged_in'):
 		return 'You need to login first'
@@ -144,18 +151,19 @@ def user_list():
 	role = db.session.query(Role.id, Role.name).all()	
 	print('role', role)
 
-	user_role = db.session.query(UserRole.u_id, UserRole.r_id).all()	
+	user_role = db.session.query(UserCourseRole.u_id, UserCourseRole.r_id).all()	
 	print('user_role', user_role)
-
+	'''
 	people = db.session.query(User.id, User.username) \
-		.outerjoin(UserRole, User.id == UserRole.u_id) \
-		.outerjoin(Role, UserRole.r_id == Role.id) \
+		.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
+		.outerjoin(Role, UserCourseRole.r_id == Role.id) \
 		.with_entities(User.id, User.username, Role.name).all()
+	'''
+	people = db.session.query(User.id, User.username, User.is_superuser).all() 
 	print('people {}'.format(people))
-	
-	role_list = get_role_list()
 
-	return render_template('table.html', people = people, role_list = role_list )
+
+	return render_template('user_admin.html', people = people )
 
 
 @app.route('/delete_user', methods=['POST'])
@@ -181,11 +189,39 @@ def add_user():
 
 	tmp_passwd = os.urandom(24)	
 	usr_passwd = generate_password_hash( tmp_passwd )
-	new_user = User( username = name, password = usr_passwd)
+	new_user = User( username = name, password = usr_passwd )
 	db.session.add(new_user)
 	db.session.commit()
 	
-	return redirect(url_for('user_list'))
+	return redirect(url_for('user_admin'))
+
+
+@app.route('/set_permission', methods=['POST'])
+def set_permission():
+	
+	u_id = request.form['u_id']
+	print('permission  {}'.format(request.form['permission']))
+
+	if request.form['permission'] ==  'Administrator':
+		is_superuser = True
+	else:
+		is_superuser = False
+
+
+	data = User.query.filter_by(id = u_id).first()	
+
+	print('data.id  {} \ndata.name  {} \ndata.is_superuser  {}'.format(data.id, data.username, data.is_superuser))
+	if data.is_superuser == is_superuser:
+		print('no effect')
+	else:
+		data.set_superuser(is_superuser)
+		print('data.is_superuser  {}'.format(data.is_superuser))
+		db.session.commit()
+		print('set superuser')
+
+	return redirect(url_for('user_admin'))
+
+
 
 @app.route('/get_user_info', methods=['GET', 'POST'])
 def get_user_info():
@@ -274,7 +310,7 @@ def set_role():
 	print('r_id  {}'.format(data.id))
 	
 	
-	instance = UserRole( u_id = u_id, r_id = data.id )
+	instance = UserCourseRole( u_id = u_id, r_id = data.id )
 	db.session.add(instance)
 	db.session.commit()
 
@@ -327,16 +363,16 @@ def delete_role():
 
 @app.after_request
 def add_header(r):
-    """
-    Add headers to both force latest IE rendering engine or Chrome Frame,
-    and also to cache the rendered page for 10 minutes.
-    """
+	"""
+	Add headers to both force latest IE rendering engine or Chrome Frame,
+	and also to cache the rendered page for 10 minutes.
+	"""
 	# clear browser cache
-    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    r.headers["Pragma"] = "no-cache"
-    r.headers["Expires"] = "0"
-    r.headers['Cache-Control'] = 'public, max-age=0'
-    return r
+	r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+	r.headers["Pragma"] = "no-cache"
+	r.headers["Expires"] = "0"
+	r.headers['Cache-Control'] = 'public, max-age=0'
+	return r
 
 
 app.secret_key = os.urandom(24)
