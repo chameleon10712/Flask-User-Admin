@@ -13,7 +13,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-    
+
 
 </head>
 
@@ -71,6 +71,8 @@
                     
 
         </div><!--end for row-->
+
+
 
         <div class="row" style="margin-bottom:80px;">
             <div class="col-md-4"></div>
@@ -149,21 +151,27 @@
 
         });
 
+        
         $('.course_list_record').on('click', function(){
             var c_id = $(this).children('.c_id').html();
             console.log('c_id', c_id);
+            /*
             $.ajax({
-                    url: '/get_course_info',
+                    url: '/course_info',
                     type:'POST',
                     data: {c_id:c_id},
                     success: function(response){
-                        window.location = '/course_info';
+                        //window.location = '/course_info';
                     },
                     error: function(error){
                         console.log('error ', error);   
                     }
             });
+            */
+            window.location = '/course_info/' + c_id;
+
         });
+        
 
 	
 	</script>

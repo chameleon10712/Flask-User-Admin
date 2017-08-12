@@ -283,15 +283,17 @@ def delete_course():
 	return 'ok'
 
 
-@app.route('/get_course_info', methods=['GET', 'POST'])
-def get_course_info():
-
-		
-	return 'ok'
 
 
-@app.route('/course_info')
-def course_info():
+@app.route('/course_info/', methods=['GET'])
+@app.route('/course_info/<c_id>', methods=['GET'])
+def course_info(c_id=None):
+	'''
+	c_id = request.form['c_id']
+	data = Course.query.filter_by(id = c_id).first()
+	print('course id {}  name {}'.format(data.id, data.name))
+	'''
+	
 
 	return render_template('course_info.html')
 
