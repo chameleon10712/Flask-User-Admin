@@ -28,7 +28,6 @@ class User(db.Model):
 
 
 class Role(db.Model):
-
 	__tablename__ = 'Role'
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(255), nullable=False)
@@ -38,7 +37,6 @@ class Role(db.Model):
 
 
 class UserCourseRole(db.Model):
-
 	__tablename__ = 'UserCourseRole'
 	id = db.Column(db.Integer, primary_key=True)
 	u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False, unique=True)
@@ -52,7 +50,6 @@ class UserCourseRole(db.Model):
 
 
 class Course(db.Model):
-	
 	__tablename__ = 'Course'
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(255))	
@@ -61,16 +58,12 @@ class Course(db.Model):
 		self.name = name
 
 
-
 def get_role_list():
-
 	role_list = db.session.query(Role.id, Role.name).all()	
 	role_list = sorted(role_list, key=lambda role: role[0])
 	print(role_list)
 	print(type(role_list))
 	return role_list
-
-
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -80,6 +73,7 @@ def home():
 		return redirect(url_for('hello', username=session['logged_in']))
 	else:
 		return render_template('index.html')
+
 
 @app.route('/hello')
 @app.route('/hello/<username>')
@@ -123,12 +117,13 @@ def register():
 			return 'User exists!'
 
 		usr_passwd = generate_password_hash(request.form['password'])
-		new_user = User( username = name, password = usr_passwd)
+		new_user = User(username=name, password=usr_passwd)
 		db.session.add(new_user)
 		db.session.commit()
 		return render_template('login.html')
 
 	return render_template('register.html')
+
 
 @app.route("/logout")
 def logout():
@@ -139,10 +134,8 @@ def logout():
 
 @app.route('/user_admin')
 def user_admin():
-
 	if not session.get('logged_in'):
 		return 'You need to login first'
-
 
 	people = db.session.query(User.id, User.username).all()	
 	people = sorted(people, key=lambda person: person[0])
@@ -162,15 +155,13 @@ def user_admin():
 	people = db.session.query(User.id, User.username, User.is_superuser).all() 
 	print('people {}'.format(people))
 
-
 	return render_template('user_admin.html', people = people )
 
 
 @app.route('/delete_user', methods=['POST'])
 def delete_user():
-
 	u_id = int(request.form['u_id'])	
-	instance = User.query.filter_by(id = u_id).first()
+	instance = User.query.filter_by(id=u_id).first()
 	print(instance.username)
 
 	db.session.delete(instance)
@@ -178,9 +169,9 @@ def delete_user():
 
 	return 'ok'
 
-@app.route('/add_user' , methods=['POST'])
-def add_user():
 
+@app.route('/add_user', methods=['POST'])
+def add_user():
 	name = request.form['username']
 	#check if username exist
 	data = User.query.filter_by(username=name).first()
@@ -188,29 +179,29 @@ def add_user():
 		return 'user name exist'
 
 	tmp_passwd = os.urandom(24)	
-	usr_passwd = generate_password_hash( tmp_passwd )
-	new_user = User( username = name, password = usr_passwd )
+	usr_passwd = generate_password_hash(tmp_passwd)
+	new_user = User(username=name, password=usr_passwd)
 	db.session.add(new_user)
 	db.session.commit()
-	
+
 	return redirect(url_for('user_admin'))
 
 
 @app.route('/set_permission', methods=['POST'])
 def set_permission():
-	
 	u_id = request.form['u_id']
 	print('permission  {}'.format(request.form['permission']))
 
-	if request.form['permission'] ==  'Administrator':
+	if request.form['permission'] == 'Administrator':
 		is_superuser = True
 	else:
 		is_superuser = False
 
+	data = User.query.filter_by(id=u_id).first()	
 
-	data = User.query.filter_by(id = u_id).first()	
-
-	print('data.id  {} \ndata.name  {} \ndata.is_superuser  {}'.format(data.id, data.username, data.is_superuser))
+	print('data.id', data.id)
+	print('data.name', data.username)
+	print('data.is_superuser', data.is_superuser)
 	if data.is_superuser == is_superuser:
 		print('no effect')
 	else:
@@ -222,22 +213,18 @@ def set_permission():
 	return redirect(url_for('user_admin'))
 
 
-
 @app.route('/get_user_info', methods=['GET', 'POST'])
 def get_user_info():
-
-		
 	return 'ok'
+
 
 @app.route('/user_info')
 def user_info():
-
 	return render_template('user_info.html')
 
 
 @app.route('/course_admin')
 def course_admin():
-
 	if not session.get('logged_in'):
 		return 'You need to login first'
 
@@ -245,15 +232,11 @@ def course_admin():
 	course_list = sorted(course_list, key=lambda course: course[0])
 	print(course_list)
 
-	return render_template('course_admin.html', course_list  = course_list )
-#	return render_template('course_admin.html')
-
-
+	return render_template('course_admin.html', course_list=course_list)
 
 
 @app.route('/add_course', methods=['POST'])
 def add_course():
-
 	name = request.form['course_name']
 	#check if course name exist
 	
@@ -261,28 +244,27 @@ def add_course():
 	if data is not None:
 		return 'course name exist'
 	
-	new_course = Course( name = name)
+	new_course = Course(name=name)
 	db.session.add(new_course)
 	db.session.commit()
 	print('new course id: {}'.format(new_course.id))
-	print('json.dumps: {}'.format( json.dumps({'c_id': new_course.id}) ))
+	print('json.dumps: {}'.format(
+		json.dumps({'c_id': new_course.id})
+	))
 
-	return json.dumps( {'c_id': new_course.id} )
+	return json.dumps({'c_id': new_course.id})
 
 
 @app.route('/delete_course', methods=['POST'])
 def delete_course():
-
 	c_id = int(request.form['c_id'])	
-	instance = Course.query.filter_by(id = c_id).first()
-	print('delete course: {}'.format(instance.name) )
+	instance = Course.query.filter_by(id=c_id).first()
+	print('delete course: {}'.format(instance.name))
 
 	db.session.delete(instance)
 	db.session.commit()
 
 	return 'ok'
-
-
 
 
 @app.route('/course_info/', methods=['GET'])
@@ -294,9 +276,7 @@ def course_info(c_id=None):
 	print('course id {}  name {}'.format(data.id, data.name))
 	'''
 	
-
 	return render_template('course_info.html')
-
 
 
 @app.route('/set_role', methods=['POST'])
@@ -308,11 +288,10 @@ def set_role():
 	db.session.add(new_course)
 	db.session.commit()
 	'''
-	data = Role.query.filter_by(name = r_name).first()
+	data = Role.query.filter_by(name=r_name).first()
 	print('r_id  {}'.format(data.id))
 	
-	
-	instance = UserCourseRole( u_id = u_id, r_id = data.id )
+	instance = UserCourseRole(u_id=u_id, r_id=data.id)
 	db.session.add(instance)
 	db.session.commit()
 
@@ -321,46 +300,43 @@ def set_role():
 
 @app.route('/role_admin')
 def role_admin():
-
 	if not session.get('logged_in'):
 		return 'You need to login first'
 
 	role_list = get_role_list()
-	return render_template('role_admin.html', role_list  = role_list )
-
-
+	return render_template('role_admin.html', role_list=role_list)
 
 
 @app.route('/add_role', methods=['POST'])
 def add_role():
-
 	name = request.form['role_name']
 	#check if role name exist
 	
 	data = Role.query.filter_by(name=name).first()
 	if data is not None:
 		return 'role name exist'
-	
-	new_role = Role( name = name)
+
+	new_role = Role(name=name)
 	db.session.add(new_role)
 	db.session.commit()
 	print('new role id: {}'.format(new_role.id))
-	print('json.dumps: {}'.format( json.dumps({'r_id': new_role.id}) ))
+	print('json.dumps: {}'.format(
+		json.dumps({'r_id': new_role.id})
+	))
 
-	return json.dumps( {'r_id': new_role.id} )
+	return json.dumps({'r_id': new_role.id})
+
 
 @app.route('/delete_role', methods=['POST'])
 def delete_role():
-
 	r_id = int(request.form['r_id'])	
-	instance = Role.query.filter_by(id = r_id).first()
-	print('delete role: {}'.format(instance.name) )
+	instance = Role.query.filter_by(id=r_id).first()
+	print('delete role: {}'.format(instance.name))
 
 	db.session.delete(instance)
 	db.session.commit()
 
 	return 'ok'
-
 
 
 @app.after_request
@@ -384,5 +360,4 @@ if __name__ == '__main__':
 	db.create_all()
 	app.secret_key = "123"
 	app.run(host='127.0.0.1')
-	
 
