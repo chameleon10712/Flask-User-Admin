@@ -4,6 +4,7 @@ import json
 from flask import Flask, url_for, render_template, request, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import UniqueConstraint
 
 
 app = Flask(__name__)
@@ -42,6 +43,7 @@ class UserCourseRole(db.Model):
 	u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False, unique=True)
 	c_id = db.Column(db.Integer, db.ForeignKey('Course.id'), nullable=True)
 	r_id = db.Column(db.Integer, db.ForeignKey('Role.id'), nullable=False)
+	__table_args__ = (UniqueConstraint('u_id', 'c_id', name='_uid_cid_uc'),)
 
 	def __init__(self, u_id, c_id, r_id):
 		self.u_id = u_id
@@ -56,6 +58,31 @@ class Course(db.Model):
 
 	def __init__(self, name):
 		self.name = name
+
+
+def set_default_role():
+	''' default role : teacher, TA, student '''
+
+
+	data = Role.query.filter_by(name='Teacher').first()
+	if data is  None:
+		teacher = Role(name='Teacher')
+		db.session.add(teacher)
+		db.session.commit()
+	
+	data = Role.query.filter_by(name='TA').first()
+	if data is None:
+		TA = Role(name='TA')
+		db.session.add(TA)
+		db.session.commit()
+
+	data = Role.query.filter_by(name='Student').first()	
+	if data is None:
+		student = Role(name='Student')
+		db.session.add(student)
+		db.session.commit()
+
+	return
 
 
 def get_role_list():
@@ -160,6 +187,8 @@ def user_admin():
 
 @app.route('/delete_user', methods=['POST'])
 def delete_user():
+	#TODO : DB cascade
+
 	u_id = int(request.form['u_id'])	
 	instance = User.query.filter_by(id=u_id).first()
 	print(instance.username)
@@ -270,30 +299,58 @@ def delete_course():
 @app.route('/course_info/', methods=['GET'])
 @app.route('/course_info/<c_id>', methods=['GET'])
 def course_info(c_id=None):
-	'''
-	c_id = request.form['c_id']
+	
+	if c_id is None:
+		return	'Please select course'
+
 	data = Course.query.filter_by(id = c_id).first()
 	print('course id {}  name {}'.format(data.id, data.name))
+	c_name = data.name
 	'''
-	
-	return render_template('course_info.html')
+	people = db.session.query(User.id, User.username) \
+		.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
+		.outerjoin(Role, UserCourseRole.r_id == Role.id) \
+		.with_entities(User.id, User.username, Role.name).all()
+	'''
+	'''	
+	teacher = db.session.query(User.id, User.username) \
+		.outerjoin(UserCourseRole, User.id == )
+	'''
+	teacher_list=[]
+	return render_template('course_info.html', c_name=c_name, c_id=c_id, teacher_list=teacher_list)
 
 
 @app.route('/set_role', methods=['POST'])
 def set_role():
-	u_id = request.form['u_id'];
-	r_name = request.form['r_name'];	
-	'''
-	new_course = Course(name = name)
-	db.session.add(new_course)
-	db.session.commit()
-	'''
-	data = Role.query.filter_by(name=r_name).first()
-	print('r_id  {}'.format(data.id))
+	'''set UserCourseRole'''
+
+	u_name = request.form['username'];
+	r_id = request.form['r_id'];
+	c_id = request.form['c_id']
+
+	data = User.query.filter_by(username=u_name).first()
+	if data is None:
+		return 'no such user'
+	else:
+		u_id = data.id
 	
-	instance = UserCourseRole(u_id=u_id, r_id=data.id)
-	db.session.add(instance)
-	db.session.commit()
+	print('u_id',u_id)
+	print('c_id',c_id)
+	print('r_id',r_id)
+
+
+	#TODO : check (u_id, c_id) is unique
+	data = UserCourseRole.query.filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).all()
+	if data is None:
+		#TODO
+		print('( u_id, c_id )  record does not exist yet')
+		instance = UserCourseRole(u_id=u_id, c_id=c_id, r_id=r_id)
+		db.session.add(instance)
+		db.session.commit()
+	else:
+		#TODO
+		print('( u_id, c_id ) record already exist! Need to modify record')
+
 
 	return 'ok'
 
@@ -327,9 +384,16 @@ def add_role():
 	return json.dumps({'r_id': new_role.id})
 
 
+
 @app.route('/delete_role', methods=['POST'])
 def delete_role():
 	r_id = int(request.form['r_id'])	
+	
+	if r_id==1 or r_id==2 or r_id==3 :
+		#TODO : set http status code 
+		return 'cannot delete default role'
+	
+
 	instance = Role.query.filter_by(id=r_id).first()
 	print('delete role: {}'.format(instance.name))
 
@@ -358,6 +422,8 @@ app.secret_key = os.urandom(24)
 if __name__ == '__main__':
 	app.debug = True
 	db.create_all()
+	set_default_role() # set default role : teacher, TA, student
 	app.secret_key = "123"
 	app.run(host='127.0.0.1')
+	
 

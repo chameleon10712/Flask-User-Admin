@@ -35,13 +35,13 @@
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a href="/user_list">User Admin</a>
+                        <a href="/user_admin">User Admin</a>
                     </li>
                     <li>
                         <a href="/course_admin">Course Admin</a>
                     </li>
                     <li>
-                        <a href="#">Sample Post</a>
+                        <a href="/role_admin">Role Admin</a>
                     </li>
                     <li>
                         <a href="#">Contact</a>
@@ -58,11 +58,89 @@
 	
     <div class="container"  style="margin-top:80px;">
 
-        <h1>Course Info</h1>
+		<h1>{{c_name}}</h1>
+        <div class="row" style="margin-bottom:30px;">
+                <div class="col-md-8 col-lg-6"></div>
+                <div class="col-md-2 col-lg-4">
+                    <input type="teacher_name" class="input_username" placeholder="User Name">
+                </div>
+                <div class="col-md-2 col-lg-2">
+                    <button type="button" class="set_role add_teacher btn btn-primary">Add Teacher</button>
+                </div>
+        </div><!--end for row-->
+
+
+        <div class="row" style="margin-bottom:80px;">
+            <div class="col-md-4"></div>
+            <table class="table col-md-4">
+                <thead>
+                    <tr>
+                        <th scope="row">user id</th>
+                        <th>username</th>
+                        <th></th>
+                    <tr>
+                </thead>
+                <tbody class="teacher_list">
+                    {% for teacher in teacher_list %}
+                    <tr class="teacher_list_record">
+                        <td class="teacher_id">{{ teacher.id }}</td>
+                        <td>{{ teacher.name }}</td>
+                        <td><button type="button" class="delete btn btn-info">x</button></td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+            <div class="col-md-4"></div>
+        </div><!--end for row-->
+
+
 
 	</div>
 
 
+	<script>
+		var c_id = {{c_id}};
+		console.log('c_id',c_id);
+
+		$('.set_role').on('click',function(){
+			var username = $(this).parent().prev().children('.input_username').val();				
+			var r_id = 0;
+            console.log('input username:  ',username);
+
+            if(username){
+                // user name is not empty
+				if( $(this).hasClass('add_teacher')){
+					r_id = 1;
+				}
+
+                $.ajax({
+                        url: '/set_role',
+                        type:'POST',
+                        data: {username:username, r_id:r_id, c_id:c_id},
+                        success:function(response){
+
+                        },
+                        error: function(error){
+                            console.log(error);
+                        }
+                });
+                
+            }else{
+                //user name is emtpy
+                console.log('user name is empty');
+
+            }
+	
+		});
+
+
+	</script>
+
 
 </body>
 </html>
+
+
+
+

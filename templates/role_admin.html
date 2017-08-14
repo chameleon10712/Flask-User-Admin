@@ -87,7 +87,11 @@
                     <tr class="role_list_record">
                         <td class="r_id">{{ role.id }}</td>
                         <td>{{ role.name }}</td>
+						{% if role.id!=1 and role.id!=2 and role.id!=3 %}
                         <td><button type="button" class="delete btn btn-info">x</button></td>
+						{% else %}
+						<td></td>
+						{% endif %}
                     </tr>
                     {% endfor %}
 
