@@ -89,8 +89,6 @@ def set_default_role():
 
 
 def get_user_course_role_list(c_id, r_id):
-
-
 	result = db.session.query(User.id, User.username)\
 					.select_from(UserCourseRole).join(User)\
 					.filter(UserCourseRole.c_id==c_id, 
@@ -430,6 +428,15 @@ def delete_role():
 	db.session.commit()
 
 	return 'ok'
+
+
+@app.route('/test')
+def test():
+
+	tmp = 'haha'
+	tmp2 = 'banana'
+
+	return render_template('test.html', tmp=tmp, tmp2=tmp2)
 
 
 @app.after_request
