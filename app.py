@@ -12,6 +12,17 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 db = SQLAlchemy(app)
 
+def row2dict(row):
+	"""Convert query object by sqlalchemy to dictionary object."""
+	if not row:
+		return None
+
+	d = {}
+	for column in row.__table__.columns:
+		d[column.name] = getattr(row, column.name)
+	return d
+
+
 class User(db.Model):
 	""" Create user table"""
 
@@ -21,7 +32,7 @@ class User(db.Model):
 	password = db.Column(db.String(80))
 	is_superuser = db.Column(db.Boolean, default=False)
 	
-	user_course_role = relationship('UserCourseRole', cascade='all,delete-orphan', backref='User')
+	user_course_role = db.relationship('UserCourseRole', cascade='all,delete-orphan')
 
 	def __init__(self, username, password):
 		self.username = username
@@ -43,7 +54,7 @@ class Role(db.Model):
 class UserCourseRole(db.Model):
 	__tablename__ = 'UserCourseRole'
 	id = db.Column(db.Integer, primary_key=True)
-	u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False, unique=True)
+	u_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=False)
 	c_id = db.Column(db.Integer, db.ForeignKey('Course.id'), nullable=True)
 	r_id = db.Column(db.Integer, db.ForeignKey('Role.id'), nullable=False)
 	__table_args__ = (UniqueConstraint('u_id', 'c_id', name='_uid_cid_uc'),)
@@ -292,19 +303,46 @@ def course_info(c_id=None):
 		return	'Please select course'
 
 	data = Course.query.filter_by(id = c_id).first()
+	print('/course_info')
 	print('course id {}  name {}'.format(data.id, data.name))
 	c_name = data.name
-		
+	'''		
 	teacher_list = db.session.query(User.id, User.username) \
 					.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
 					.outerjoin(Role, UserCourseRole.r_id == 1)\
-					.with_entities(User.id, User.username, Role.name).all()
+					.outerjoin(Course, UserCourseRole.c_id == c_id)\
+					.with_entities(User.id, User.username, UserCourseRole.c_id, UserCourseRole.r_id).all()
+	'''
+	query_teacher_list= db.session.query(User).filter(UserCourseRole.c_id == c_id, UserCourseRole.r_id == 1).all()
+	teacher_list = []
+	for teacher in query_teacher_list:
+	    teacher_list.append(row2dict(teacher))
+	print('teacher_list',teacher_list)
 
 	return render_template('course_info.html',
 							c_name=c_name,
 							c_id=c_id,
 							teacher_list=teacher_list
 							)
+
+
+@app.route('/remove_user_from_course', methods=['POST'])
+def remove_user_from_course():
+	
+	u_id = request.form['u_id']
+	c_id = request.form['c_id']
+	print('u_id', u_id)
+	print('c_id', c_id)
+
+
+	data = UserCourseRole.query.filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).first()
+	print('data', data)
+	
+	if data is not None:
+		db.session.delete(data)
+		db.session.commit()
+	
+	return 'ok'
 
 
 @app.route('/set_role', methods=['POST'])
@@ -327,8 +365,8 @@ def set_role():
 
 
 	#TODO : check (u_id, c_id) is unique
-	data = UserCourseRole.query.filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).all()
-	if data is None:
+	data = UserCourseRole.query.filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).first()
+	if not data:
 		#TODO
 		print('( u_id, c_id )  record does not exist yet')
 		instance = UserCourseRole(u_id=u_id, c_id=c_id, r_id=r_id)
