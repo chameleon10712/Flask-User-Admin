@@ -13,106 +13,50 @@
     <meta charset="utf-8">
 
 
-    <!-- Bootstrap Core CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    {% include "resource.html" %}
 
 	<style>
 		.course_name {
 			margin-bottom:80px;
-		}
-
-	
-	
+		}	
 	</style>
-
 
 
 </head>
 
 
 <body>
-	<!--navigation bar-->
-    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
-        <div class="container-fluid">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header page-scroll">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    Menu <i class="fa fa-bars"></i>
-                </button>
-                <a class="navbar-brand" href="/">HomePage</a>
-            </div>
+    {% include "nav.html" %}
 
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="/user_admin">User Admin</a>
-                    </li>
-                    <li>
-                        <a href="/course_admin">Course Admin</a>
-                    </li>
-                    <li>
-                        <a href="/role_admin">Role Admin</a>
-                    </li>
-                    <li>
-                        <a href="#">Contact</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container -->
-    </nav>	
-
-
-
-	
     <div class="container"  style="margin-top:80px;">
 
-		<h1 class="course_name">{{c_name}}</h1>
+		<h1 class="course_name">{{ c_name | title }}</h1>
+        {% with 
+            item_Name='Teacher', 
+            item_name='teacher',
+            item_type='user' , 
+            item_list=teacher_list 
+        %}
+        {% include "course_role_list.html" %}
+        {% endwith %}
 
-		<h3>Teacher List</h3>
-        <div class="row" style="margin-bottom:30px;">
-                <div class="col-md-8 col-lg-6"></div>
-                <div class="col-md-2 col-lg-4">
-                    <input type="teacher_name" class="input_username" placeholder="User Name">
-                </div>
-                <div class="col-md-2 col-lg-2">
-                    <button type="button" class="set_role add_teacher btn btn-primary">Add Teacher</button>
-                </div>
-        </div><!--end for row-->
+        {% with 
+            item_Name='TA', 
+            item_name='ta',
+            item_type='user' , 
+            item_list=TA_list 
+        %}
+        {% include "course_role_list.html" %}
+        {% endwith %}
 
-
-        <div class="row" style="margin-bottom:80px;">
-            <div class="col-md-4"></div>
-            <table class="table col-md-4">
-                <thead>
-                    <tr>
-                        <th scope="row">user id</th>
-                        <th>username</th>
-                        <th></th>
-                    <tr>
-                </thead>
-                <tbody class="teacher_list">
-                    {% for teacher in teacher_list %}
-                    <tr class="teacher_list_record">
-                        <td class="u_id">{{ teacher.id }}</td>
-                        <td class="u_name">{{ teacher.username }}</td>
-                        <td><button type="button" class="delete btn btn-info">x</button></td>
-                    </tr>
-                    {% endfor %}
-
-                </tbody>
-            </table>
-            <div class="col-md-4"></div>
-        </div><!--end for row-->
-
-
+        {% with 
+            item_Name='Student', 
+            item_name='student',
+            item_type='user' , 
+            item_list=student_list 
+        %}
+        {% include "course_role_list.html" %}
+        {% endwith %}
 
 	</div>
 
@@ -130,7 +74,11 @@
                 // user name is not empty
 				if( $(this).hasClass('add_teacher')){
 					r_id = 1;
-				}
+				}else if( $(this).hasClass('add_ta') ){
+                    r_id = 2;
+                }else if( $(this).hasClass('add_student') ){
+                    r_id = 3;
+                }
 
                 $.ajax({
                         url: '/set_role',
@@ -153,7 +101,7 @@
 		});
 
         $('.delete').on('click', function(){
-                var u_id = $(this).parent().parent().children('.u_id').html();
+                var u_id = $(this).parent().parent().children('.item_id').html();
                 console.log('u_id  ', u_id);
                 $.ajax({
                         url: '/remove_user_from_course',
@@ -163,6 +111,27 @@
                 $(this).parent().parent().remove();
 
         });
+
+        $('.item_list_record > .item_id, .item_list_record > .item_name').on('click', function(){
+            var u_id = $(this).parent().attr('data-id');
+            var u_name = $(this).parent().attr('data-name');
+            console.log('u_id', u_id);
+            $.ajax({
+                    url: '/get_user_info',
+                    type:'POST',
+                    data: {u_id:u_id},
+                    success: function(response){
+                        window.location = '/user_info/'+u_name;
+                    },
+                    error: function(error){
+                        console.log('error ', error);   
+                    }
+            });
+            
+    
+        });
+
+
 
 	</script>
 

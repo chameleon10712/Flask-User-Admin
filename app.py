@@ -253,12 +253,57 @@ def set_permission():
 
 @app.route('/get_user_info', methods=['GET', 'POST'])
 def get_user_info():
+
 	return 'ok'
 
 
-@app.route('/user_info')
-def user_info():
-	return render_template('user_info.html')
+@app.route('/user_info/')
+@app.route('/user_info/<u_name>')
+def user_info(u_name=None):
+
+	if u_name is None:
+		return 'username is None'
+
+	data = db.session.query(User).filter_by(username=u_name).first()
+	if data is None:
+		return 'user does not exist'
+
+	print('u_id',data.id)
+	u_id = data.id
+
+	course_role_list = db.session.query(
+						UserCourseRole.c_id, 
+						UserCourseRole.r_id
+						).filter_by(u_id=u_id).all()
+
+	print('course_role_list  [(c_id, r_id)]', course_role_list)
+	'''
+	result = db.session.query(User.id, User.username)\
+					.select_from(UserCourseRole).join(User)\
+					.filter(UserCourseRole.c_id==c_id, 
+							UserCourseRole.r_id==r_id)\
+					.all()
+	'''
+	'''
+	result = db.session.query(Course.name)\
+				.select_from(UserCourseRole).join(Course)\
+				.filter(UserCourseRole.c_id==Course.id,
+						UserCourseRole.u_id==u_id
+						)\
+				.all()
+	'''
+	result = db.session.query(Course.id, Course.name, Role.name)\
+				.select_from(UserCourseRole).join(Course)\
+				.filter(UserCourseRole.c_id==Course.id,
+						UserCourseRole.u_id==u_id,
+						UserCourseRole.r_id==Role.id
+						)\
+				.all()
+
+	print('result',result)
+
+
+	return render_template('user_info.html', course_role_list=result)	
 
 
 @app.route('/course_admin')
@@ -317,15 +362,23 @@ def course_info(c_id=None):
 	print('course id {}  name {}'.format(data.id, data.name))
 	c_name = data.name
 
-	# teacher r_id = 1
+	# teacher	r_id = 1
+	# TA		r_id = 2
+	# student	r_id = 3
 	teacher_list = get_user_course_role_list(c_id, 1)
+	TA_list = get_user_course_role_list(c_id, 2)
+	student_list = get_user_course_role_list(c_id, 3)
 	print('teacher_list',teacher_list)
-	print(type(teacher_list))
+	# print(type(teacher_list))
+	print('TA_list', TA_list)
+	print('student_list', student_list)
 
 	return render_template('course_info.html',
 							c_name=c_name,
 							c_id=c_id,
-							teacher_list=teacher_list
+							teacher_list=teacher_list,
+							TA_list=TA_list,
+							student_list=student_list
 							)
 
 
@@ -351,9 +404,9 @@ def remove_user_from_course():
 def set_role():
 	'''set UserCourseRole'''
 
-	u_name = request.form['username'];
-	r_id = request.form['r_id'];
-	c_id = request.form['c_id']
+	u_name = request.form['username']
+	r_id = int(request.form['r_id'])
+	c_id = int(request.form['c_id'])
 
 	data = User.query.filter_by(username=u_name).first()
 	if data is None:
@@ -365,19 +418,30 @@ def set_role():
 	print('c_id',c_id)
 	print('r_id',r_id)
 
+	print('UserCourseRole')
+	print('(c_id, u_id, r_id)')
+	print(db.session.query(UserCourseRole.c_id, UserCourseRole.u_id, UserCourseRole.r_id).all())
 
-	#TODO : check (u_id, c_id) is unique
-	data = UserCourseRole.query.filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).first()
+	data = db.session.query(UserCourseRole)\
+			.filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).first()
+
+
 	if not data:
-		#TODO
 		print('( u_id, c_id )  record does not exist yet')
 		instance = UserCourseRole(u_id=u_id, c_id=c_id, r_id=r_id)
 		db.session.add(instance)
 		db.session.commit()
 	else:
-		#TODO
+		print('data.u_id', data.u_id)
+		print('data.c_id', data.c_id)
+		print('data.r_id', data.r_id, type(data.r_id))
+		print('r_id',r_id, type(r_id))
 		print('( u_id, c_id ) record already exist! Need to modify record')
-
+		if data.r_id != r_id:
+			data.r_id = r_id
+			db.session.commit()		
+		else:
+			print('(u_id, c_id, r_id) record already exist! No need to modify')
 
 	return 'ok'
 

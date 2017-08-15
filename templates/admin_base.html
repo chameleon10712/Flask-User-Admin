@@ -1,0 +1,119 @@
+<html>
+
+<head>
+
+	<title>
+		{% if c_name %}
+			{{c_name}}
+		{% else %}
+			Course
+		{% endif %}
+			Info
+	</title>
+    <meta charset="utf-8">
+
+
+    <!-- Bootstrap Core CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<style>
+		.course_name {
+			margin-bottom:80px;
+		}
+	</style>
+
+
+
+</head>
+
+
+<body>
+	<!--navigation bar-->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    Menu <i class="fa fa-bars"></i>
+                </button>
+                <a class="navbar-brand" href="/">HomePage</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/user_admin">User Admin</a>
+                    </li>
+                    <li>
+                        <a href="/course_admin">Course Admin</a>
+                    </li>
+                    <li>
+                        <a href="/role_admin">Role Admin</a>
+                    </li>
+                    <li>
+                        <a href="#">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>	
+
+
+
+	
+    <div class="container"  style="margin-top:80px;">
+
+		<h1 class="course_name">{{c_name}}</h1>
+
+		<h3>{{role_name}} List</h3>
+        <div class="row" style="margin-bottom:30px;">
+                <div class="col-md-8 col-lg-6"></div>
+                <div class="col-md-2 col-lg-4">
+                    <input type="{{role_name}}_name" class="input_username" placeholder="User Name">
+                </div>
+                <div class="col-md-2 col-lg-2">
+                    <button type="button" class="set_role add_{{role_name}} btn btn-primary">Add {{role_name}}</button>
+                </div>
+        </div><!--end for row-->
+
+
+        <div class="row" style="margin-bottom:80px;">
+            <div class="col-md-4"></div>
+            <table class="table col-md-4">
+                <thead>
+                    <tr>
+                        <th scope="row">{{item}} id</th>
+                        <th>{{item}} name</th>
+                        <th></th>
+                    <tr>
+                </thead>
+                <tbody class="list">
+                    {% for record in list %}
+                    <tr class="list_record">
+                        <td class="record_id">{{ record.id }}</td>
+                        <td class="record_name">{{ record.username }}</td>
+                        <td><button type="button" class="delete btn btn-info">x</button></td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+            <div class="col-md-4"></div>
+        </div><!--end for row-->
+	</div>
+
+
+</body>
+</html>
+
+
+
+
