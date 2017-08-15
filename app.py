@@ -312,12 +312,17 @@ def course_info(c_id=None):
 		.outerjoin(Role, UserCourseRole.r_id == Role.id) \
 		.with_entities(User.id, User.username, Role.name).all()
 	'''
-	'''	
-	teacher = db.session.query(User.id, User.username) \
-		.outerjoin(UserCourseRole, User.id == )
-	'''
-	teacher_list=[]
-	return render_template('course_info.html', c_name=c_name, c_id=c_id, teacher_list=teacher_list)
+		
+	teacher_list = db.session.query(User.id, User.username) \
+		.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
+		.outerjoin(Role, UserCourseRole.r_id == 1)\
+		.with_entities(User.id, User.username, Role.name).all()
+
+	return render_template('course_info.html',
+							c_name=c_name,
+							c_id=c_id,
+							teacher_list=teacher_list
+							)
 
 
 @app.route('/set_role', methods=['POST'])

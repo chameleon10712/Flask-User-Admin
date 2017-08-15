@@ -13,7 +13,16 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-    
+	<style>
+		.course_name {
+			margin-bottom:80px;
+		}
+
+	
+	
+	</style>
+
+
 
 </head>
 
@@ -58,10 +67,12 @@
 	
     <div class="container"  style="margin-top:80px;">
 
-		<h1>{{c_name}}</h1>
+		<h1 class="course_name">{{c_name}}</h1>
+
+		<h3>Teacher List</h3>
         <div class="row" style="margin-bottom:30px;">
-                <div class="col-md-8 col-lg-6"></div>
-                <div class="col-md-2 col-lg-4">
+                <div class="col-md-8 col-lg-8"></div>
+                <div class="col-md-2 col-lg-2">
                     <input type="teacher_name" class="input_username" placeholder="User Name">
                 </div>
                 <div class="col-md-2 col-lg-2">
@@ -83,8 +94,8 @@
                 <tbody class="teacher_list">
                     {% for teacher in teacher_list %}
                     <tr class="teacher_list_record">
-                        <td class="teacher_id">{{ teacher.id }}</td>
-                        <td>{{ teacher.name }}</td>
+                        <td class="u_id">{{ teacher.id }}</td>
+                        <td class="u_name">{{ teacher.username }}</td>
                         <td><button type="button" class="delete btn btn-info">x</button></td>
                     </tr>
                     {% endfor %}
@@ -134,6 +145,17 @@
 	
 		});
 
+        $('.delete').on('click', function(){
+                var u_id = $(this).parent().parent().children('.u_id').html();
+                console.log('u_id  ', u_id);
+                $.ajax({
+                        url: '/remove_user_from_course',
+                        type:'POST',
+                        data: {u_id:u_id, c_id:c_id},
+                });
+                $(this).parent().parent().remove();
+
+        });
 
 	</script>
 
