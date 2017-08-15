@@ -2,7 +2,14 @@
 
 <head>
 
-	<title>Course Info</title>
+	<title>
+		{% if c_name %}
+			{{c_name}}
+		{% else %}
+			Course
+		{% endif %}
+			Info
+	</title>
     <meta charset="utf-8">
 
 

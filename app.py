@@ -12,17 +12,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 db = SQLAlchemy(app)
 
-def row2dict(row):
-	"""Convert query object by sqlalchemy to dictionary object."""
-	if not row:
-		return None
-
-	d = {}
-	for column in row.__table__.columns:
-		d[column.name] = getattr(row, column.name)
-	return d
-
-
 class User(db.Model):
 	""" Create user table"""
 
@@ -99,12 +88,35 @@ def set_default_role():
 	return
 
 
+def get_user_course_role_list(c_id, r_id):
+
+
+	result = db.session.query(User.id, User.username)\
+					.select_from(UserCourseRole).join(User)\
+					.filter(UserCourseRole.c_id==c_id, 
+							UserCourseRole.r_id==r_id)\
+					.all()
+
+	return result
+
+
 def get_role_list():
 	role_list = db.session.query(Role.id, Role.name).all()	
 	role_list = sorted(role_list, key=lambda role: role[0])
 	print(role_list)
 	print(type(role_list))
 	return role_list
+
+
+def row2dict(row):
+	"""Convert query object by sqlalchemy to dictionary object."""
+	if not row:
+		return None
+
+	d = {}
+	for column in row.__table__.columns:
+		d[column.name] = getattr(row, column.name)
+	return d
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -306,18 +318,11 @@ def course_info(c_id=None):
 	print('/course_info')
 	print('course id {}  name {}'.format(data.id, data.name))
 	c_name = data.name
-	'''		
-	teacher_list = db.session.query(User.id, User.username) \
-					.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
-					.outerjoin(Role, UserCourseRole.r_id == 1)\
-					.outerjoin(Course, UserCourseRole.c_id == c_id)\
-					.with_entities(User.id, User.username, UserCourseRole.c_id, UserCourseRole.r_id).all()
-	'''
-	query_teacher_list= db.session.query(User).filter(UserCourseRole.c_id == c_id, UserCourseRole.r_id == 1).all()
-	teacher_list = []
-	for teacher in query_teacher_list:
-	    teacher_list.append(row2dict(teacher))
+
+	# teacher r_id = 1
+	teacher_list = get_user_course_role_list(c_id, 1)
 	print('teacher_list',teacher_list)
+	print(type(teacher_list))
 
 	return render_template('course_info.html',
 							c_name=c_name,
@@ -334,9 +339,8 @@ def remove_user_from_course():
 	print('u_id', u_id)
 	print('c_id', c_id)
 
-
-	data = UserCourseRole.query.filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).first()
-	print('data', data)
+	data = db.session.query(UserCourseRole).filter(UserCourseRole.u_id==u_id, UserCourseRole.c_id==c_id).first()
+	print(type(data))
 	
 	if data is not None:
 		db.session.delete(data)
