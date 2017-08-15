@@ -5,6 +5,7 @@ from flask import Flask, url_for, render_template, request, redirect, session, j
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
+from sqlalchemy.orm import backref, relationship
 
 
 app = Flask(__name__)
@@ -19,6 +20,8 @@ class User(db.Model):
 	username = db.Column(db.String(80), unique=True)
 	password = db.Column(db.String(80))
 	is_superuser = db.Column(db.Boolean, default=False)
+	
+	user_course_role = relationship('UserCourseRole', cascade='all,delete-orphan', backref='User')
 
 	def __init__(self, username, password):
 		self.username = username
@@ -164,21 +167,6 @@ def user_admin():
 	if not session.get('logged_in'):
 		return 'You need to login first'
 
-	people = db.session.query(User.id, User.username).all()	
-	people = sorted(people, key=lambda person: person[0])
-	print('people  {}'.format(people))
-
-	role = db.session.query(Role.id, Role.name).all()	
-	print('role', role)
-
-	user_role = db.session.query(UserCourseRole.u_id, UserCourseRole.r_id).all()	
-	print('user_role', user_role)
-	'''
-	people = db.session.query(User.id, User.username) \
-		.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
-		.outerjoin(Role, UserCourseRole.r_id == Role.id) \
-		.with_entities(User.id, User.username, Role.name).all()
-	'''
 	people = db.session.query(User.id, User.username, User.is_superuser).all() 
 	print('people {}'.format(people))
 
@@ -190,10 +178,10 @@ def delete_user():
 	#TODO : DB cascade
 
 	u_id = int(request.form['u_id'])	
-	instance = User.query.filter_by(id=u_id).first()
-	print(instance.username)
+	user = User.query.filter_by(id=u_id).first()
+	print(user.username)
 
-	db.session.delete(instance)
+	db.session.delete(user)
 	db.session.commit()
 
 	return 'ok'
@@ -306,17 +294,11 @@ def course_info(c_id=None):
 	data = Course.query.filter_by(id = c_id).first()
 	print('course id {}  name {}'.format(data.id, data.name))
 	c_name = data.name
-	'''
-	people = db.session.query(User.id, User.username) \
-		.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
-		.outerjoin(Role, UserCourseRole.r_id == Role.id) \
-		.with_entities(User.id, User.username, Role.name).all()
-	'''
 		
 	teacher_list = db.session.query(User.id, User.username) \
-		.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
-		.outerjoin(Role, UserCourseRole.r_id == 1)\
-		.with_entities(User.id, User.username, Role.name).all()
+					.outerjoin(UserCourseRole, User.id == UserCourseRole.u_id) \
+					.outerjoin(Role, UserCourseRole.r_id == 1)\
+					.with_entities(User.id, User.username, Role.name).all()
 
 	return render_template('course_info.html',
 							c_name=c_name,
