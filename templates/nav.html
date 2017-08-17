@@ -1,4 +1,4 @@
-	<!--navigation bar-->
+    <!--navigation bar-->
     <nav class="navbar navbar-default navbar-custom navbar-fixed-top">
         <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
@@ -22,12 +22,16 @@
                     <li>
                         <a href="/role_admin">Role Admin</a>
                     </li>
-                    <li>
-                        <a href="#">Contact</a>
-                    </li>
+                    {% if session['logged_in'] %}
+                        <li><a href="#">User: {{ session['logged_in'] }}</a></li>
+                    {% else %}
+                        <li>
+                            <a href="/login">Login</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
         </div>
         <!-- /.container -->
-    </nav>	
+    </nav>  

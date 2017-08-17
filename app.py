@@ -260,6 +260,8 @@ def get_user_info():
 @app.route('/user_info/')
 @app.route('/user_info/<u_name>')
 def user_info(u_name=None):
+	if not session.get('logged_in'):
+		return 'You need to login first'
 
 	if u_name is None:
 		return 'username is None'
@@ -353,6 +355,8 @@ def delete_course():
 @app.route('/course_info/', methods=['GET'])
 @app.route('/course_info/<c_id>', methods=['GET'])
 def course_info(c_id=None):
+	if not session.get('logged_in'):
+		return 'You need to login first'
 	
 	if c_id is None:
 		return	'Please select course'
