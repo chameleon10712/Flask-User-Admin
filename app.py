@@ -331,16 +331,28 @@ def user_info(u_name=None):
 	return render_template('user_info.html', course_role_list=result)	
 
 
-@app.route('/course_admin')
-def course_admin():
+@app.route('/course_admin/')
+@app.route('/course_admin/<view>')
+def course_admin(view=None):
 	if not session.get('logged_in'):
 		return 'You need to login first'
 
-	course_list = db.session.query(Course.id, Course.name).all()	
-	course_list = sorted(course_list, key=lambda course: course[0])
-	print(course_list)
+	course_list = []
 
-	return render_template('course_admin.html', course_list=course_list)
+	if view in (None, 'Administrator'):
+		view='Administrator'
+		course_list = db.session.query(Course.id, Course.name).all()	
+		course_list = sorted(course_list, key=lambda course: course[0])
+		print(course_list)
+
+	elif view == 'User':
+		course_list=[]
+
+	print(course_list)
+	print('view', view)
+
+
+	return render_template('course_admin.html', course_list=course_list, view=view)
 
 
 @app.route('/add_course', methods=['POST'])

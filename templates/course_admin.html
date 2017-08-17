@@ -16,9 +16,22 @@
     <div class="container"  style="margin-top:80px;">
 
         <h1>Course List</h1>
+		<div class="row">
+			<div class="col-lg-11"></div>
+			<div class="btn-group col-lg-1">
+			  <div style="margin:5px;font-size:16px;">View As</div>
+			  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				{{view}} <span class="caret"></span>
+			  </button>
+			  <ul class="dropdown-menu">
+				<li><a href="#" class="select_view">Administrator</a></li>
+				<li><a href="#" class="select_view">User</a></li>
+			  </ul>
+			</div>
+		</div>
 
-        <div class="row" style="margin-bottom:30px;">
-                <div class="col-md-8 col-lg-6"></div>
+        <div class="row" style="margin:50px;">
+                <div class="col-md-6 col-lg-6"></div>
                 <div class="col-md-2 col-lg-4">
                     <input type="course_name" id="input_course_name" placeholder="Course Name">
                 </div>
@@ -38,7 +51,8 @@
                     <tr>
                         <th scope="row">course id</th>
                         <th>course name</th>
-                        <th></th>
+                        <th>role</th>
+						<th></th>
                     <tr>
                 </thead>
                 <tbody class="course_list">
@@ -46,15 +60,10 @@
                     <tr class="course_list_record">
                         <td class="c_id">{{ course.id }}</td>
                         <td>{{ course.name }}</td>
+						<td></td>
                         <td><button type="button" class="delete btn btn-info">x</button></td>
                     </tr>
                     {% endfor %}
-
-					<tr class="new_course">
-						<td class="c_id"></td>
-						<td class="c_name"></td>
-						<td class="delete_btn"></td>
-					</tr>
 
                 </tbody>
             </table>
@@ -116,6 +125,10 @@
 
         });
         
+		$('.select_view').on('click',function(){
+			var selected_view = $(this).html();
+			window.location = '/course_admin/'+selected_view;
+		});
 
 	
 	</script>
