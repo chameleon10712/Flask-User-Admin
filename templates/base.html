@@ -1,20 +1,15 @@
 <html>
   <head>
 		<title>Flask Login Example</title>
+		<!--
 		<link rel="stylesheet" href="/static/css/style.css">
+		-->
+		{% include "resource.html" %}
 
   </head>
   <body>
-    <a href="/" class="link-btn">Home</a>
-    <br><br><br><br>
-
-    <a href="/user_admin" class="link-btn">User Admin</a>
-
-    <br><br><br><br>
-
-    <a href="/course_admin" class="link-btn">Course Admin</a>
-
-    <br><br><br><br>
+	{% include "nav.html" %}
+	<br><br><br><br>
     {% block content %}{% endblock %}
   </body>
 </html>

@@ -1,27 +1,74 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="user-div">
+<div>
 	{% if session['logged_in'] %}
 	   
 		{% if data %}
 			<h3>{{data}}</h3>
 		{% else %}
-
-			<a href="/logout" class="link-btn">Logout</a> <br> <br>
 			
 			{% if username %}
-				<h1>hi {{ username }}</h1>
+				<h1>Hi {{ username }} :)</h1>
 			{% else %}
-				<h1>there is no username </h1>
+				<h1>The user has no name.</h1>
 			{% endif %}
+
+			<a href="/logout" class="link-btn">Logout</a> <br> <br>
 			
 		{% endif %}
 
 	{% else %}
-		<p>Not login!</p>
-		<a href="/login" class="link-btn">Login</a> 
-		<a href="/register" class="link-btn">Register</a>
+		<h1>Hi, guest! Please login or register.</h1>
+
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-4"></div>
+				<div class="col-lg-4">
+					<div>
+						<h1>Login / Register</h1>
+					</div>
+					<form>
+						<div style="margin:50px;">
+							<div style="margin:20px;">
+								<input type="username" name="username" placeholder="Username">
+							</div>
+							<div style="margin:20px;">
+								<input type="password" name="password" placeholder="Password">
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-lg-5"></div>
+							<div>
+								<input class="login btn btn-success " type="submit" value="Login">
+								<input class="register btn btn-primary " type="submit" value="Register">
+							</div>
+						</div>
+					</form>
+
+				</div>
+			</div>
+
+		</div>
 
 	{% endif %}
 </div>
+
+<script>
+	$('.login').on('click',function(){
+		$('form').attr('action','/login/');
+		$('form').attr('method','POST');
+	});		
+
+	$('.register').on('click',function(){
+		$('form').attr('action','/register/');
+		$('form').attr('method','POST');
+
+	});		
+
+
+</script>
+
 {% endblock %}
+
+
+

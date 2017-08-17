@@ -146,7 +146,7 @@ def hello(username=None):
 		return render_template('index.html', username=username)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login/', methods=['GET', 'POST'])
 def login():
 	"""Login Form"""
 	if request.method == 'GET':
@@ -186,10 +186,11 @@ def register():
 		new_user = User(username=name, password=usr_passwd)
 		db.session.add(new_user)
 		db.session.commit()
-		return render_template('login.html')
+		#return render_template('login.html')
+		return render_template('index.html')
 
-	return render_template('register.html')
-
+	#return render_template('register.html')
+	return render_template('index.html')
 
 @app.route("/logout")
 def logout():

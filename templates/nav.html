@@ -16,8 +16,10 @@
 					<li><a href="/user_admin">User Admin</a></li>
 					<li><a href="/course_admin">Course Admin</a></li>
 					<li><a href="/role_admin">Role Admin</a></li>
-					<li><a href="#">User: {{ session['logged_in'] }}</a></li>
-					<li><a href="/logout">Logout</a></li>
+					{% if session['logged_in'] %}
+						<li><a href="#">User: {{ session['logged_in'] }}</a></li>
+						<li><a href="/logout">Logout</a></li>
+					{% endif %}
 				</ul>
 			</div>
 			<!-- /.navbar-collapse -->
