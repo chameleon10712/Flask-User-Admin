@@ -63,8 +63,19 @@ class Course(db.Model):
 		self.name = name
 
 
-def set_default_role():
-	''' default role : teacher, TA, student '''
+def initial_db():
+	''' 
+		create default superuser
+		default role : teacher, TA, student 
+	'''
+	# create default superuser : (username=a, passwd=a)
+	data = User.query.filter_by(username='a').first()
+	if data is None:
+		usr_passwd = generate_password_hash('a')
+		default_admin = User(username='a', password=usr_passwd)
+		default_admin.set_superuser(True)
+		db.session.add(default_admin)
+		db.session.commit()
 
 
 	data = Role.query.filter_by(name='Teacher').first()
@@ -163,6 +174,10 @@ def register():
 	"""Register Form"""
 	if request.method == 'POST':
 		name = request.form['username']
+		if not name:
+			# check if string is empty
+			return 'username is empty'
+
 		data = User.query.filter_by(username=name).first()
 		if data is not None:
 			return 'User exists!'
@@ -179,7 +194,9 @@ def register():
 @app.route("/logout")
 def logout():
 	"""Logout Form"""
-	del session['logged_in']
+	if 'logged_in' in session:
+		del session['logged_in']
+
 	return redirect(url_for('home'))
 
 
@@ -187,6 +204,11 @@ def logout():
 def user_admin():
 	if not session.get('logged_in'):
 		return 'You need to login first'
+	
+	username = session.get('logged_in')
+	user = db.session.query(User).filter_by(username=username).first()
+	if not user.is_superuser :
+		return 'Permission Deny'
 
 	people = db.session.query(User.id, User.username, User.is_superuser).all() 
 	print('people {}'.format(people))
@@ -526,7 +548,9 @@ app.secret_key = os.urandom(24)
 if __name__ == '__main__':
 	app.debug = True
 	db.create_all()
-	set_default_role() # set default role : teacher, TA, student
+	initial_db()
+	# set default role : teacher, TA, student
+	# create default superuser : a 
 	app.secret_key = "123"
 	app.run(host='127.0.0.1')
 	
