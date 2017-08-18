@@ -17,7 +17,7 @@
 					<li><a href="/course_admin">Course Admin</a></li>
 					<li><a href="/role_admin">Role Admin</a></li>
 					{% if session['logged_in'] %}
-						<li><a href="#">User: {{ session['logged_in'] }}</a></li>
+						<li><a href="/user_info/{{session['logged_in']}}">User: {{ session['logged_in'] }}</a></li>
 						<li><a href="/logout">Logout</a></li>
 					{% endif %}
 				</ul>

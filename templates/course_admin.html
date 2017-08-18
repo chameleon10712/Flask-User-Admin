@@ -18,16 +18,20 @@
         <h1>Course List</h1>
 		<div class="row">
 			<div class="col-lg-11"></div>
-			<div class="btn-group col-lg-1">
-			  <div style="margin:5px;font-size:16px;">View As</div>
-			  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				{{view}} <span class="caret"></span>
-			  </button>
-			  <ul class="dropdown-menu">
-				<li><a href="#" class="select_view">Administrator</a></li>
-				<li><a href="#" class="select_view">User</a></li>
-			  </ul>
-			</div>
+			{% if permission %}
+				<div class="btn-group col-lg-1">
+				  <div style="margin:5px;font-size:16px;">View As</div>
+				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					{{view}} <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu">
+					<li><a href="#" class="select_view">Administrator</a></li>
+					<li><a href="#" class="select_view">User</a></li>
+				  </ul>
+				</div>
+			{% else %}
+				<div class="col-lg-1"></div>
+			{% endif %}
 		</div>
 
         <div class="row" style="margin:50px;">
@@ -51,16 +55,27 @@
                     <tr>
                         <th scope="row">course id</th>
                         <th>course name</th>
-                        <th>role</th>
+                        <th>
+							{% if view=='User' %}
+								role
+							{% endif %}
+						</th>
+						<th></th>
 						<th></th>
                     <tr>
                 </thead>
                 <tbody class="course_list">
                     {% for course in course_list %}
-                    <tr class="course_list_record">
-                        <td class="c_id">{{ course.id }}</td>
-                        <td>{{ course.name }}</td>
-						<td></td>
+                    <tr class="course_list_record" data-cid="{{ course[0] }}">
+                        <td>{{ course[0] }}</td>
+                        <td>
+							<span>{{ course[1] }}</span>
+                    		<input type="course_name" style="display:none;" placeholder="{{course[1]}}">
+						</td>
+						<td>
+							<span>{{ course[2] }}</span>
+						</td>
+						<td><button type="button" class="rename btn btn-link">rename</button></td>
                         <td><button type="button" class="delete btn btn-info">x</button></td>
                     </tr>
                     {% endfor %}
@@ -104,7 +119,26 @@
 			}
 
 		 });
+
+
+		$('.rename').on('click',function(){
+                var c_id = $(this).parent().parent().children('.c_id').html();
+                console.log('c_id  ', c_id);
+                $.ajax({
+                        url: '/rename_course',
+                        type:'POST',
+                        data: {c_id:c_id},
+						success: function(){
+							window.location = '/course_admin';
+						},
+						error: function(error){
+							console.log(error);
+						}
+                });
 		
+		});
+
+
         $('.delete').on('click', function(){
                 var c_id = $(this).parent().parent().children('.c_id').html();
                 console.log('c_id  ', c_id);
@@ -119,10 +153,9 @@
 
         
         $('.course_list_record').on('click', function(){
-            var c_id = $(this).children('.c_id').html();
+            var c_id = $(this).attr('data-cid');
             console.log('c_id', c_id);
             window.location = '/course_info/' + c_id;
-
         });
         
 		$('.select_view').on('click',function(){

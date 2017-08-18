@@ -52,23 +52,24 @@
 						<td class="col-lg-2">
 							<div class="dropdown hidden_flag">
 							  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-								{% if person.is_superuser %}
-									Administrator
-								{% else %}
-									User
-								{% endif %}
+								<span class="permission">
+									{% if person.is_superuser %}
+										Administrator
+									{% else %}
+										User
+									{% endif %}
+								</span>
 								<span class="caret"></span>
 							  </button>
 							  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
 								<li><a href="#" class="select_permission">User</li>
 								<li><a href="#" class="select_permission">Administrator</li>
-
-								
 							  </ul>
 							</div>
 
 						</td>
                         <td class="col-lg-2"><button type="button" class="hidden_flag delete btn btn-info">x</button></td>
+
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -86,14 +87,22 @@
 
 
         $('.delete').on('click', function(){
+				var target_element = $(this).parent().parent();
                 var u_id = $(this).parent().parent().children('.u_id').html();
                 console.log('u_id  ', u_id);
                 $.ajax({
                         url: '/delete_user',
                         type:'POST',
                         data: {u_id:u_id},
+						success: function(){
+							target_element.remove();
+						},
+						error: function(jqXHR, textStatus, errorThrown){
+							//alert(jqXHR);
+							//alert(textStatus);
+							alert(errorThrown);
+						}
                 });
-                $(this).parent().parent().remove();
 
         });
 		
@@ -135,23 +144,17 @@
 						url: '/set_permission',
 						type: 'POST',
 						data: {u_id:u_id, permission:permission},
-						success: function(response){
-							console.log('response ', response);
+						success: function(){
 							window.location='/user_admin';
-
 						},
-						error: function(error){
-							console.log('error ', error);
+						error: function(jqXHR, textStatus, errorThrown){
+							alert(errorThrown);
 						}
 
 				});
 
 
 		});	
-
-
-
-
 		
 
         $('.user_list_record > .u_id, .user_list_record > .u_name').on('click', function(){

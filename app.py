@@ -63,6 +63,29 @@ class Course(db.Model):
 		self.name = name
 
 
+class InvalidUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
 def initial_db():
 	''' 
 		create default superuser
@@ -208,6 +231,9 @@ def user_admin():
 	
 	username = session.get('logged_in')
 	user = db.session.query(User).filter_by(username=username).first()
+	if user is None:
+		return 'something wrong...'
+
 	if not user.is_superuser :
 		return 'Permission Deny'
 
@@ -219,11 +245,21 @@ def user_admin():
 
 @app.route('/delete_user', methods=['POST'])
 def delete_user():
-	#TODO : DB cascade
+	#TODO check if user is default admin
 
 	u_id = int(request.form['u_id'])	
+	if u_id == 1 :
+		raise InvalidUsage('Cannot delete default admin', status_code=403)
+
+
 	user = User.query.filter_by(id=u_id).first()
 	print(user.username)
+	
+	if session['logged_in'] == user.username:
+		print('user delete ownself')
+		#TODO return http status code 400 Bad Request
+		raise InvalidUsage('user delete ownself', status_code=403)
+
 
 	db.session.delete(user)
 	db.session.commit()
@@ -250,7 +286,16 @@ def add_user():
 
 @app.route('/set_permission', methods=['POST'])
 def set_permission():
-	u_id = request.form['u_id']
+
+	u_id = int(request.form['u_id'])
+	if u_id ==1:
+		raise InvalidUsage('cannot change default admin permission', status_code=403)
+
+	data = User.query.filter_by(id=u_id).first()	
+	if data.username == session['logged_in']:
+		raise InvalidUsage('cannot change ownself permission', status_code=403)
+
+
 	print('permission  {}'.format(request.form['permission']))
 
 	if request.form['permission'] == 'Administrator':
@@ -258,7 +303,6 @@ def set_permission():
 	else:
 		is_superuser = False
 
-	data = User.query.filter_by(id=u_id).first()	
 
 	print('data.id', data.id)
 	print('data.name', data.username)
@@ -271,7 +315,8 @@ def set_permission():
 		db.session.commit()
 		print('set superuser')
 
-	return redirect(url_for('user_admin'))
+	#return redirect(url_for('user_admin'))
+	return 'ok'
 
 
 @app.route('/get_user_info', methods=['GET', 'POST'])
@@ -338,6 +383,12 @@ def course_admin(view=None):
 		return 'You need to login first'
 
 	course_list = []
+	data = db.session.query(User).filter_by(username=session['logged_in']).first()
+	u_id = data.id
+	permission = data.is_superuser
+	
+	if not permission:
+		view = 'User'
 
 	if view in (None, 'Administrator'):
 		view='Administrator'
@@ -346,13 +397,22 @@ def course_admin(view=None):
 		print(course_list)
 
 	elif view == 'User':
-		course_list=[]
+
+		course_list = db.session.query(Course.id, Course.name, Role.name)\
+					.select_from(UserCourseRole).join(Course)\
+					.filter(UserCourseRole.c_id==Course.id,
+							UserCourseRole.u_id==u_id,
+							UserCourseRole.r_id==Role.id
+							)\
+					.all()
+
+
 
 	print(course_list)
 	print('view', view)
 
 
-	return render_template('course_admin.html', course_list=course_list, view=view)
+	return render_template('course_admin.html', course_list=course_list, view=view, permission=permission)
 
 
 @app.route('/add_course', methods=['POST'])
@@ -373,6 +433,15 @@ def add_course():
 	))
 
 	return json.dumps({'c_id': new_course.id})
+
+
+@app.route('/rename_course', methods=['POST'])
+def rename_course():
+	c_id = int(request.form['c_id'])
+	instance = Course.query.filter_by(id=c_id).first()
+	
+
+	return
 
 
 @app.route('/delete_course', methods=['POST'])
